@@ -8,7 +8,7 @@ class ElementWrapper {
     }
 
     appendChild(component) {
-        this.appendChild(component.root);
+        this.root.appendChild(component.root);
     }
 }
 
@@ -19,7 +19,7 @@ class TextWrapper {
 }
 
 export class Component {
-    constructor(content) {
+    constructor() {
         this.props = Object.create(null);
         this.children = [];
         this._root = null;
@@ -42,15 +42,17 @@ export class Component {
 }
 
 export function createElement(type, attributes, ...children) {
-    let e;
+    let el;
     if (typeof type === 'string') {
-        e = new ElementWrapper(type);
+        el = new ElementWrapper(type);
     } else {
-        e = new type;
+        el = new type();
     }
 
-    for (let p in attributes) {
-        e.setAttribute(p, attributes[p]);
+    for (const key in attributes) {
+        if (attributes.hasOwnProperty(key)) {
+            el.setAttribute(key, attributes[key]);
+        }
     }
 
     let insertChildren = (children) => {
@@ -58,19 +60,19 @@ export function createElement(type, attributes, ...children) {
             if (typeof child === 'string') {
                 child = new TextWrapper(child);
             }
-            if (typeof child === 'object' && child instanceof Array) {
+            if (Array.isArray(child)) {
                 insertChildren(child);
             } else {
-                e.appendChild(child);
+                el.appendChild(child);
             }
         }
     };
 
     insertChildren(children);
 
-    return e;
+    return el;
 }
 
-export function render(component, parentElement) {
-    parentElement.appendChild(component);
+export function render(component, container) {
+    container.appendChild(component.root);
 }

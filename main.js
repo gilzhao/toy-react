@@ -13,7 +13,7 @@ class MyComponent extends Component {
 
 render(
     <MyComponent id="a" class="c">
-        <div>123</div>
+        <div>abc</div>
         <div></div>
         <div></div>
     </MyComponent>,
