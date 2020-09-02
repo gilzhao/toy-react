@@ -6,13 +6,17 @@ class ElementWrapper {
     }
 
     setAttribute(name, value) {
-        if (name.match(/^on([\s\S]+)/)) {
+        if (name.match(/^on([\s\S]+)$/)) {
             this.root.addEventListener(
-                RegExp.$1.replace(/^[\s\S]+/, (c) => c.toLowerCase()),
+                RegExp.$1.replace(/^[\s\S]/, (c) => c.toLowerCase()),
                 value
             );
         } else {
-            this.root.setAttribute(name, value);
+            if (name === 'className') {
+                this.root.setAttribute('class', value);
+            } else {
+                this.root.setAttribute(name, value);
+            }
         }
     }
 
@@ -62,8 +66,14 @@ export class Component {
     }
 
     rerender() {
-        this._range.deleteContents();
-        this[RENDER_TO_DOM](this._range);
+        let oldRange = this._range;
+        let range = document.createRange();
+        range.setStart(oldRange.startContainer, oldRange.startOffset);
+        range.setEnd(oldRange.startContainer, oldRange.startOffset);
+        this[RENDER_TO_DOM](range);
+
+        oldRange.setStart(range.endContainer, range.endOffset);
+        oldRange.deleteContents();
     }
 
     setState(newState) {
@@ -107,6 +117,9 @@ export function createElement(type, attributes, ...children) {
             if (typeof child === 'string') {
                 child = new TextWrapper(child);
             }
+            if (child === null) {
+                continue;
+            }
             if (Array.isArray(child)) {
                 insertChildren(child);
             } else {
@@ -120,10 +133,10 @@ export function createElement(type, attributes, ...children) {
     return el;
 }
 
-export function render(component, parentElement) {
+export function render(component, container) {
     let range = document.createRange();
-    range.setStart(parentElement, 0);
-    range.setEnd(parentElement, parentElement.childNodes.length);
+    range.setStart(container, 0);
+    range.setEnd(container, container.childNodes.length);
     range.deleteContents();
     component[RENDER_TO_DOM](range);
 }
